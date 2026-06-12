@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Cup 2026 · Sweepstakes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0A1628;
+    --card: #1A2E50;
+    --card-light: #243D6A;
+    --gold: #C8A84B;
+    --gold-dim: rgba(200,168,75,0.15);
+    --text: #E8EDF5;
+    --text-dim: #8A9BBC;
+    --live: #2ECC71;
+    --elim: #E63946;
+    --border: rgba(255,255,255,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(180deg, #06101e 0%, var(--navy) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .trophy-icon { font-size: 22px; filter: drop-shadow(0 0 8px var(--gold)); }
+
+  .header-title {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .header-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 0.5px; }
+
+  nav { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; }
+  nav::-webkit-scrollbar { display: none; }
+
+  .tab {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 18px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  main { max-width: 960px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.2);
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .match-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+    transition: background 0.15s;
+  }
+
+  .match-row:last-child { border-bottom: none; }
+  .match-row:hover { background: rgba(255,255,255,0.03); }
+  .match-row.live { background: rgba(46,204,113,0.05); }
+
+  .live-badge {
+    display: inline-block;
+    background: var(--live);
+    color: #000;
+    font-family: 'Oswald', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    animation: pulse 1.5s ease-in-out infinite;
+    margin-left: 6px;
+  }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .team-block { display: flex; align-items: center; gap: 8px; }
+  .team-block.away { flex-direction: row-reverse; text-align: right; }
+  .team-flag { font-size: 20px; line-height: 1; flex-shrink: 0; }
+  .team-info { min-width: 0; }
+
+  .team-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .team-owner { font-size: 10px; color: var(--text-dim); font-weight: 500; margin-top: 1px; }
+
+  .owner-tag {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+    flex-shrink: 0;
+  }
+
+  .score-block { text-align: center; min-width: 70px; }
+
+  .score {
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+
+  .score.upcoming {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+
+  .match-meta { font-size: 10px; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.3px; }
+
+  .section-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 18px 0 8px;
+  }
+
+  /* Groups */
+  .groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+
+  .group-table { width: 100%; border-collapse: collapse; }
+
+  .group-table th {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 6px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .group-table th:first-child { text-align: left; }
+  .group-table td { padding: 8px 8px; text-align: center; font-size: 13px; border-bottom: 1px solid var(--border); }
+  .group-table tr:last-child td { border-bottom: none; }
+  .group-table td:first-child { text-align: left; }
+
+  .group-team-cell { display: flex; align-items: center; gap: 7px; }
+  .group-flag { font-size: 16px; }
+
+  .group-team-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .group-owner-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .pts-cell { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; color: var(--gold); }
+
+  tr.eliminated .group-team-name { text-decoration: line-through; color: var(--elim); }
+
+  .q-pill {
+    display: inline-block;
+    font-size: 9px;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.5px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .q-pill.adv { background: rgba(46,204,113,0.2); color: var(--live); }
+  .q-pill.elim { background: rgba(230,57,70,0.2); color: var(--elim); }
+
+  /* Knockout */
+  .bracket-stage { margin-bottom: 28px; }
+
+  .bracket-stage-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 0 0 10px;
+    border-bottom: 1px solid var(--gold-dim);
+    margin-bottom: 12px;
+  }
+
+  .bracket-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+
+  .bracket-match {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .bracket-match-header {
+    font-size: 10px;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 6px 10px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bracket-team {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .bracket-team:last-child { border-bottom: none; }
+  .bracket-team.winner { background: rgba(200,168,75,0.08); }
+  .bracket-team.loser { opacity: 0.45; }
+
+  .bracket-team-left { display: flex; align-items: center; gap: 8px; }
+  .bracket-team-score { font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 700; }
+  .bracket-team-score.tbd { font-size: 12px; color: var(--text-dim); font-weight: 400; }
+
+  /* Sweepstakes */
+  .sweep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+
+  .sweep-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .sweep-card-header {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sweep-colour { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  .sweep-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .sweep-score-badge {
+    margin-left: auto;
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--gold-dim);
+    color: var(--gold);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .sweep-teams { padding: 8px 0; }
+
+  .sweep-team-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-left: 3px solid transparent;
+    transition: background 0.15s;
+  }
+
+  .sweep-team-row:hover { background: rgba(255,255,255,0.03); }
+  .sweep-team-row.eliminated { opacity: 0.4; }
+  .sweep-team-row.eliminated .sweep-team-name { text-decoration: line-through; }
+
+  .sweep-team-flag { font-size: 18px; }
+
+  .sweep-team-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .sweep-team-status { font-size: 10px; font-family: 'Oswald', sans-serif; letter-spacing: 0.5px; color: var(--text-dim); }
+  .sweep-team-status.adv { color: var(--live); }
+  .sweep-team-status.champ { color: var(--gold); }
+  .sweep-team-status.elim { color: var(--elim); }
+
+  /* Dashboard hero */
+  .dash-hero {
+    background: linear-gradient(135deg, #0d2045 0%, #1a3a6b 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dash-hero::before {
+    content: '⚽';
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 90px;
+    opacity: 0.04;
+  }
+
+  .dash-hero-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .dash-hero-teams {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+
+  .dash-hero-team { text-align: center; flex: 1; max-width: 140px; }
+  .dash-hero-flag { font-size: 36px; margin-bottom: 6px; }
+
+  .dash-hero-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .dash-hero-owner { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+  .dash-hero-vs {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text-dim);
+    min-width: 80px;
+    text-align: center;
+  }
+
+  .dash-hero-score {
+    font-family: 'Oswald', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-align: center;
+    color: var(--text);
+  }
+
+  .dash-hero-meta { text-align: center; font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+  .dash-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* Schedule filter */
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+  .filter-btn {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { border-color: var(--gold); color: var(--text); }
+  .filter-btn.active { background: var(--gold); color: #000; border-color: var(--gold); font-weight: 600; }
+
+  .schedule-date-header {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 10px 14px 4px;
+    background: rgba(200,168,75,0.05);
+    border-bottom: 1px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    .dash-two-col { grid-template-columns: 1fr; }
+    .dash-hero-name { font-size: 13px; }
+    .sweep-grid { grid-template-columns: 1fr; }
+    .groups-grid { grid-template-columns: 1fr; }
+    .bracket-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <span class="trophy-icon">🏆</span>
+    <div>
+      <div class="header-title">FIFA World Cup 2026</div>
+      <div class="header-sub">Sweepstakes Dashboard · USA · Canada · Mexico</div>
+    </div>
+  </div>
+  <nav>
+    <button class="tab active" onclick="showPanel('dashboard', this)">Dashboard</button>
+    <button class="tab" onclick="showPanel('schedule', this)">Schedule</button>
+    <button class="tab" onclick="showPanel('groups', this)">Groups</button>
+    <button class="tab" onclick="showPanel('knockout', this)">Knockout</button>
+    <button class="tab" onclick="showPanel('sweepstakes', this)">Sweepstakes</button>
+  </nav>
+</header>
+
+<main>
+  <div id="panel-dashboard" class="panel active">
+    <div id="dash-hero-container"></div>
+    <div class="dash-two-col">
+      <div>
+        <div class="section-label">Recent Results</div>
+        <div class="card" id="recent-matches"></div>
+      </div>
+      <div>
+        <div class="section-label">Upcoming Fixtures</div>
+        <div class="card" id="upcoming-matches"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-schedule" class="panel">
+    <div class="section-label">Full Schedule</div>
+    <div class="filter-bar" id="schedule-filters"></div>
+    <div id="schedule-list"></div>
+  </div>
+
+  <div id="panel-groups" class="panel">
+    <div class="section-label">Group Stage Standings</div>
+    <div class="groups-grid" id="groups-grid"></div>
+  </div>
+
+  <div id="panel-knockout" class="panel">
+    <div id="knockout-container"></div>
+  </div>
+
+  <div id="panel-sweepstakes" class="panel">
+    <div class="section-label">Sweepstakes</div>
+    <div class="sweep-grid" id="sweep-grid"></div>
+  </div>
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════
+// ██  SWEEPSTAKES DRAW                            ██
+// ═══════════════════════════════════════════════════
+var FRIENDS = [
+  { name:"Kane",   colour:"#FF6B6B", teams:["BEL","PAR","RSA","MAR"] },
+  { name:"Ben",    colour:"#4ECDC4", teams:["COL","CRO","QAT","KOR"] },
+  { name:"Tu",     colour:"#FFE66D", teams:["ENG","CPV","SWE","USA"] },
+  { name:"Hannah", colour:"#A29BFE", teams:["POR","COD","BIH","CIV"] },
+  { name:"Jenny",  colour:"#FD79A8", teams:["ARG","HAI","ECU","NZL"] },
+  { name:"Sam",    colour:"#55EFC4", teams:["GER","JOR","MEX","EGY"] },
+  { name:"Warren", colour:"#FDCB6E", teams:["NED","IRQ","AUS","SCO"] },
+  { name:"Aleksa", colour:"#74B9FF", teams:["NOR","ALG","PAN","CUW"] },
+  { name:"Annie",  colour:"#E17055", teams:["JPN","CAN","GHA","AUT"] },
+  { name:"Aimee",  colour:"#00B894", teams:["FRA","TUR","IRN","UZB"] },
+  { name:"Louis",  colour:"#D63031", teams:["BRA","SEN","CZE","URU"] },
+  { name:"Nate",   colour:"#6C5CE7", teams:["ESP","SUI","KSA","TUN"] },
+];
+
+// ═══════════════════════════════════════════════════
+// ██  TEAMS  (48 correct qualified nations)       ██
+// ═══════════════════════════════════════════════════
+var TEAMS = {
+  // Group A
+  MEX: { flag:"🇲🇽", name:"Mexico",           group:"A", status:"active" },
+  RSA: { flag:"🇿🇦", name:"South Africa",      group:"A", status:"active" },
+  KOR: { flag:"🇰🇷", name:"South Korea",       group:"A", status:"active" },
+  CZE: { flag:"🇨🇿", name:"Czechia",           group:"A", status:"active" },
+  // Group B
+  CAN: { flag:"🇨🇦", name:"Canada",            group:"B", status:"active" },
+  BIH: { flag:"🇧🇦", name:"Bosnia & Herz.",    group:"B", status:"active" },
+  QAT: { flag:"🇶🇦", name:"Qatar",             group:"B", status:"active" },
+  SUI: { flag:"🇨🇭", name:"Switzerland",       group:"B", status:"active" },
+  // Group C
+  BRA: { flag:"🇧🇷", name:"Brazil",            group:"C", status:"active" },
+  MAR: { flag:"🇲🇦", name:"Morocco",           group:"C", status:"active" },
+  HAI: { flag:"🇭🇹", name:"Haiti",             group:"C", status:"active" },
+  SCO: { flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", name:"Scotland",          group:"C", status:"active" },
+  // Group D
+  USA: { flag:"🇺🇸", name:"USA",               group:"D", status:"active" },
+  PAR: { flag:"🇵🇾", name:"Paraguay",          group:"D", status:"active" },
+  AUS: { flag:"🇦🇺", name:"Australia",         group:"D", status:"active" },
+  TUR: { flag:"🇹🇷", name:"Türkiye",           group:"D", status:"active" },
+  // Group E
+  GER: { flag:"🇩🇪", name:"Germany",           group:"E", status:"active" },
+  CUW: { flag:"🇨🇼", name:"Curaçao",           group:"E", status:"active" },
+  CIV: { flag:"🇨🇮", name:"Côte d'Ivoire",     group:"E", status:"active" },
+  ECU: { flag:"🇪🇨", name:"Ecuador",           group:"E", status:"active" },
+  // Group F
+  NED: { flag:"🇳🇱", name:"Netherlands",       group:"F", status:"active" },
+  JPN: { flag:"🇯🇵", name:"Japan",             group:"F", status:"active" },
+  SWE: { flag:"🇸🇪", name:"Sweden",            group:"F", status:"active" },
+  TUN: { flag:"🇹🇳", name:"Tunisia",           group:"F", status:"active" },
+  // Group G
+  BEL: { flag:"🇧🇪", name:"Belgium",           group:"G", status:"active" },
+  EGY: { flag:"🇪🇬", name:"Egypt",             group:"G", status:"active" },
+  IRN: { flag:"🇮🇷", name:"Iran",              group:"G", status:"active" },
+  NZL: { flag:"🇳🇿", name:"New Zealand",       group:"G", status:"active" },
+  // Group H
+  ESP: { flag:"🇪🇸", name:"Spain",             group:"H", status:"active" },
+  CPV: { flag:"🇨🇻", name:"Cape Verde",        group:"H", status:"active" },
+  KSA: { flag:"🇸🇦", name:"Saudi Arabia",      group:"H", status:"active" },
+  URU: { flag:"🇺🇾", name:"Uruguay",           group:"H", status:"active" },
+  // Group I
+  FRA: { flag:"🇫🇷", name:"France",            group:"I", status:"active" },
+  SEN: { flag:"🇸🇳", name:"Senegal",           group:"I", status:"active" },
+  IRQ: { flag:"🇮🇶", name:"Iraq",              group:"I", status:"active" },
+  NOR: { flag:"🇳🇴", name:"Norway",            group:"I", status:"active" },
+  // Group J
+  ARG: { flag:"🇦🇷", name:"Argentina",         group:"J", status:"active" },
+  ALG: { flag:"🇩🇿", name:"Algeria",           group:"J", status:"active" },
+  AUT: { flag:"🇦🇹", name:"Austria",           group:"J", status:"active" },
+  JOR: { flag:"🇯🇴", name:"Jordan",            group:"J", status:"active" },
+  // Group K
+  POR: { flag:"🇵🇹", name:"Portugal",          group:"K", status:"active" },
+  COD: { flag:"🇨🇩", name:"DR Congo",          group:"K", status:"active" },
+  UZB: { flag:"🇺🇿", name:"Uzbekistan",        group:"K", status:"active" },
+  COL: { flag:"🇨🇴", name:"Colombia",          group:"K", status:"active" },
+  // Group L
+  ENG: { flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", name:"England",           group:"L", status:"active" },
+  CRO: { flag:"🇭🇷", name:"Croatia",           group:"L", status:"active" },
+  GHA: { flag:"🇬🇭", name:"Ghana",             group:"L", status:"active" },
+  PAN: { flag:"🇵🇦", name:"Panama",            group:"L", status:"active" },
+};
+
+// ═══════════════════════════════════════════════════
+// ██  GROUP STANDINGS  (update as games are played)██
+// ═══════════════════════════════════════════════════
+var GROUPS = {
+  A: { name:"Group A", teams:[
+    { code:"MEX", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"RSA", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"KOR", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"CZE", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  B: { name:"Group B", teams:[
+    { code:"CAN", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"BIH", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"QAT", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"SUI", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  C: { name:"Group C", teams:[
+    { code:"BRA", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"MAR", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"HAI", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"SCO", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  D: { name:"Group D", teams:[
+    { code:"USA", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"PAR", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"AUS", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"TUR", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  E: { name:"Group E", teams:[
+    { code:"GER", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"CUW", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"CIV", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"ECU", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  F: { name:"Group F", teams:[
+    { code:"NED", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"JPN", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"SWE", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"TUN", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  G: { name:"Group G", teams:[
+    { code:"BEL", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"EGY", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"IRN", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"NZL", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  H: { name:"Group H", teams:[
+    { code:"ESP", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"CPV", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"KSA", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"URU", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  I: { name:"Group I", teams:[
+    { code:"FRA", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"SEN", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"IRQ", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"NOR", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  J: { name:"Group J", teams:[
+    { code:"ARG", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"ALG", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"AUT", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"JOR", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  K: { name:"Group K", teams:[
+    { code:"POR", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"COD", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"UZB", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"COL", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+  L: { name:"Group L", teams:[
+    { code:"ENG", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"CRO", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"GHA", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"PAN", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+  ]},
+};
+
+// ═══════════════════════════════════════════════════
+// ██  MATCHES  — all times in AEST (UTC+10)       ██
+// ██  status: "upcoming" | "live" | "completed"   ██
+// ═══════════════════════════════════════════════════
+var MATCHES = [
+  // ── GROUP STAGE ──
+  // Thursday 12 June (AEST) — matches kick off Wed 11 Jun US time
+  { home:"MEX", away:"RSA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group A", date:"Thu 12 Jun · 05:00 AEST" },
+  { home:"KOR", away:"CZE",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group A", date:"Thu 12 Jun · 12:00 AEST" },
+  // Friday 13 June (AEST)
+  { home:"CAN", away:"BIH",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group B", date:"Fri 13 Jun · 05:00 AEST" },
+  { home:"USA", away:"PAR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group D", date:"Fri 13 Jun · 11:00 AEST" },
+  // Saturday 14 June (AEST)
+  { home:"QAT", away:"SUI",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group B", date:"Sat 14 Jun · 05:00 AEST" },
+  { home:"BRA", away:"MAR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group C", date:"Sat 14 Jun · 08:00 AEST" },
+  { home:"HAI", away:"SCO",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group C", date:"Sat 14 Jun · 11:00 AEST" },
+  { home:"AUS", away:"TUR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group D", date:"Sat 14 Jun · 14:00 AEST" },
+  // Sunday 15 June (AEST)
+  { home:"GER", away:"CUW",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group E", date:"Sun 15 Jun · 03:00 AEST" },
+  { home:"NED", away:"JPN",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group F", date:"Sun 15 Jun · 06:00 AEST" },
+  { home:"CIV", away:"ECU",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group E", date:"Sun 15 Jun · 09:00 AEST" },
+  { home:"SWE", away:"TUN",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group F", date:"Sun 15 Jun · 12:00 AEST" },
+  // Monday 16 June (AEST)
+  { home:"ESP", away:"CPV",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group H", date:"Mon 16 Jun · 02:00 AEST" },
+  { home:"BEL", away:"EGY",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group G", date:"Mon 16 Jun · 05:00 AEST" },
+  { home:"KSA", away:"URU",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group H", date:"Mon 16 Jun · 08:00 AEST" },
+  { home:"IRN", away:"NZL",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group G", date:"Mon 16 Jun · 11:00 AEST" },
+  // Tuesday 17 June (AEST)
+  { home:"FRA", away:"SEN",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group I", date:"Tue 17 Jun · 05:00 AEST" },
+  { home:"IRQ", away:"NOR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group I", date:"Tue 17 Jun · 08:00 AEST" },
+  { home:"ARG", away:"ALG",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group J", date:"Tue 17 Jun · 11:00 AEST" },
+  { home:"AUT", away:"JOR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group J", date:"Tue 17 Jun · 14:00 AEST" },
+  // Wednesday 18 June (AEST)
+  { home:"POR", away:"COD",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group K", date:"Wed 18 Jun · 03:00 AEST" },
+  { home:"ENG", away:"CRO",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group L", date:"Wed 18 Jun · 06:00 AEST" },
+  { home:"GHA", away:"PAN",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group L", date:"Wed 18 Jun · 09:00 AEST" },
+  { home:"UZB", away:"COL",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group K", date:"Wed 18 Jun · 12:00 AEST" },
+  // Thursday 19 June (AEST)
+  { home:"CZE", away:"RSA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group A", date:"Thu 19 Jun · 02:00 AEST" },
+  { home:"SUI", away:"BIH",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group B", date:"Thu 19 Jun · 05:00 AEST" },
+  { home:"CAN", away:"QAT",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group B", date:"Thu 19 Jun · 08:00 AEST" },
+  { home:"MEX", away:"KOR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group A", date:"Thu 19 Jun · 11:00 AEST" },
+  // Friday 20 June (AEST)
+  { home:"SCO", away:"MAR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group C", date:"Fri 20 Jun · 08:00 AEST" },
+  { home:"USA", away:"AUS",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group D", date:"Fri 20 Jun · 05:00 AEST" },
+  { home:"BRA", away:"HAI",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group C", date:"Fri 20 Jun · 10:30 AEST" },
+  { home:"TUR", away:"PAR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group D", date:"Fri 20 Jun · 13:00 AEST" },
+  // Saturday 21 June (AEST)
+  { home:"NED", away:"SWE",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group F", date:"Sat 21 Jun · 03:00 AEST" },
+  { home:"GER", away:"CIV",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group E", date:"Sat 21 Jun · 06:00 AEST" },
+  { home:"ECU", away:"CUW",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group E", date:"Sat 21 Jun · 13:00 AEST" },
+  { home:"TUN", away:"JPN",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group F", date:"Sat 21 Jun · 14:00 AEST" },
+  // Sunday 22 June (AEST)
+  { home:"ESP", away:"KSA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group H", date:"Sun 22 Jun · 02:00 AEST" },
+  { home:"BEL", away:"IRN",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group G", date:"Sun 22 Jun · 05:00 AEST" },
+  { home:"URU", away:"CPV",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group H", date:"Sun 22 Jun · 08:00 AEST" },
+  { home:"NZL", away:"EGY",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group G", date:"Sun 22 Jun · 11:00 AEST" },
+  // Monday 23 June (AEST)
+  { home:"ARG", away:"AUT",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group J", date:"Mon 23 Jun · 03:00 AEST" },
+  { home:"FRA", away:"IRQ",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group I", date:"Mon 23 Jun · 07:00 AEST" },
+  { home:"NOR", away:"SEN",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group I", date:"Mon 23 Jun · 10:00 AEST" },
+  { home:"JOR", away:"ALG",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group J", date:"Mon 23 Jun · 13:00 AEST" },
+  // Tuesday 24 June (AEST)
+  { home:"POR", away:"UZB",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group K", date:"Tue 24 Jun · 03:00 AEST" },
+  { home:"ENG", away:"GHA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group L", date:"Tue 24 Jun · 06:00 AEST" },
+  { home:"PAN", away:"CRO",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group L", date:"Tue 24 Jun · 09:00 AEST" },
+  { home:"COL", away:"COD",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group K", date:"Tue 24 Jun · 12:00 AEST" },
+  // Wednesday 25 June (AEST)
+  { home:"SUI", away:"CAN",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group B", date:"Wed 25 Jun · 05:00 AEST" },
+  { home:"BIH", away:"QAT",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group B", date:"Wed 25 Jun · 05:00 AEST" },
+  { home:"SCO", away:"BRA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group C", date:"Wed 25 Jun · 08:00 AEST" },
+  { home:"MAR", away:"HAI",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group C", date:"Wed 25 Jun · 08:00 AEST" },
+  { home:"CZE", away:"MEX",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group A", date:"Wed 25 Jun · 11:00 AEST" },
+  { home:"RSA", away:"KOR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group A", date:"Wed 25 Jun · 11:00 AEST" },
+  // Thursday 26 June (AEST)
+  { home:"ECU", away:"GER",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group E", date:"Thu 26 Jun · 06:00 AEST" },
+  { home:"CUW", away:"CIV",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group E", date:"Thu 26 Jun · 06:00 AEST" },
+  { home:"JPN", away:"SWE",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group F", date:"Thu 26 Jun · 09:00 AEST" },
+  { home:"TUN", away:"NED",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group F", date:"Thu 26 Jun · 09:00 AEST" },
+  { home:"TUR", away:"USA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group D", date:"Thu 26 Jun · 12:00 AEST" },
+  { home:"PAR", away:"AUS",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group D", date:"Thu 26 Jun · 12:00 AEST" },
+  // Friday 27 June (AEST)
+  { home:"NOR", away:"FRA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group I", date:"Fri 27 Jun · 05:00 AEST" },
+  { home:"SEN", away:"IRQ",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group I", date:"Fri 27 Jun · 05:00 AEST" },
+  { home:"CPV", away:"KSA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group H", date:"Fri 27 Jun · 10:00 AEST" },
+  { home:"URU", away:"ESP",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group H", date:"Fri 27 Jun · 10:00 AEST" },
+  { home:"EGY", away:"IRN",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group G", date:"Fri 27 Jun · 13:00 AEST" },
+  { home:"NZL", away:"BEL",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group G", date:"Fri 27 Jun · 13:00 AEST" },
+  // Saturday 28 June (AEST)
+  { home:"PAN", away:"ENG",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group L", date:"Sat 28 Jun · 07:00 AEST" },
+  { home:"CRO", away:"GHA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group L", date:"Sat 28 Jun · 07:00 AEST" },
+  { home:"COL", away:"POR",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group K", date:"Sat 28 Jun · 09:30 AEST" },
+  { home:"COD", away:"UZB",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group K", date:"Sat 28 Jun · 09:30 AEST" },
+  { home:"ALG", away:"AUT",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group J", date:"Sat 28 Jun · 12:00 AEST" },
+  { home:"JOR", away:"ARG",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group J", date:"Sat 28 Jun · 12:00 AEST" },
+];
+
+// ═══════════════════════════════════════════════════
+// ██  KNOCKOUT BRACKET                            ██
+// ═══════════════════════════════════════════════════
+var KNOCKOUT = [
+  { stage:"Round of 32", matches:[
+    { label:"R32 · Match 1",  home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"29 Jun" },
+    { label:"R32 · Match 2",  home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"29 Jun" },
+    { label:"R32 · Match 3",  home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"30 Jun" },
+    { label:"R32 · Match 4",  home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"30 Jun" },
+    { label:"R32 · Match 5",  home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"1 Jul" },
+    { label:"R32 · Match 6",  home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"1 Jul" },
+    { label:"R32 · Match 7",  home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"2 Jul" },
+    { label:"R32 · Match 8",  home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"2 Jul" },
+    { label:"R32 · Match 9",  home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"3 Jul" },
+    { label:"R32 · Match 10", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"3 Jul" },
+    { label:"R32 · Match 11", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"4 Jul" },
+    { label:"R32 · Match 12", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"4 Jul" },
+    { label:"R32 · Match 13", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"4 Jul" },
+    { label:"R32 · Match 14", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"4 Jul" },
+  ]},
+  { stage:"Round of 16", matches:[
+    { label:"R16 · Match 1", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"5 Jul" },
+    { label:"R16 · Match 2", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"5 Jul" },
+    { label:"R16 · Match 3", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"6 Jul" },
+    { label:"R16 · Match 4", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"6 Jul" },
+    { label:"R16 · Match 5", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"7 Jul" },
+    { label:"R16 · Match 6", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"7 Jul" },
+    { label:"R16 · Match 7", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"8 Jul" },
+    { label:"R16 · Match 8", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"8 Jul" },
+  ]},
+  { stage:"Quarter-Finals", matches:[
+    { label:"QF 1", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"10 Jul" },
+    { label:"QF 2", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"10 Jul" },
+    { label:"QF 3", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"11 Jul" },
+    { label:"QF 4", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"12 Jul" },
+  ]},
+  { stage:"Semi-Finals", matches:[
+    { label:"SF 1", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"15 Jul" },
+    { label:"SF 2", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"16 Jul" },
+  ]},
+  { stage:"🏆 Final", matches:[
+    { label:"Final", home:"TBD", away:"TBD", homeScore:null, awayScore:null, winner:null, date:"20 Jul · 05:00 AEST" },
+  ]},
+];
+
+// ═══════════════════════════════════════════════════
+// ██  ENGINE — no need to edit below this line    ██
+// ═══════════════════════════════════════════════════
+
+var teamOwner = {};
+FRIENDS.forEach(function(f) {
+  f.teams.forEach(function(t) { teamOwner[t] = f; });
+});
+
+function ownerTag(code) {
+  var f = teamOwner[code];
+  if (!f) return '';
+  return '<div class="team-owner"><span class="owner-tag" style="background:'+f.colour+'"></span>'+f.name+'</div>';
+}
+
+function teamBlock(code, side) {
+  var t = TEAMS[code];
+  if (!t) return '<div class="team-block '+side+'"><div class="team-info"><div class="team-name">'+code+'</div></div></div>';
+  var f = teamOwner[code];
+  var borderStyle = f ? (side==='home' ? 'border-left:3px solid '+f.colour+';padding-left:6px;' : 'border-right:3px solid '+f.colour+';padding-right:6px;') : '';
+  return '<div class="team-block '+side+'" style="'+borderStyle+'">'
+    + '<div class="team-flag">'+t.flag+'</div>'
+    + '<div class="team-info">'
+    + '<div class="team-name">'+t.name+'</div>'
+    + ownerTag(code)
+    + '</div></div>';
+}
+
+function renderMatches(matches, container) {
+  if (!matches.length) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:12px;">No matches</div>';
+    return;
+  }
+  container.innerHTML = matches.map(function(m) {
+    var live = m.status === 'live';
+    var done = m.status === 'completed';
+    var scoreHtml = '';
+    if (live) {
+      scoreHtml = '<div class="score-block"><div class="score">'+m.homeScore+' – '+m.awayScore+'</div>'
+        + '<div class="match-meta">'+m.liveMinute+"' <span class='live-badge'>LIVE</span></div>"
+        + '<div class="match-meta">'+m.stage+'</div></div>';
+    } else if (done) {
+      scoreHtml = '<div class="score-block"><div class="score">'+m.homeScore+' – '+m.awayScore+'</div>'
+        + '<div class="match-meta">FT · '+m.stage+'</div>'
+        + '<div class="match-meta">'+m.date+'</div></div>';
+    } else {
+      scoreHtml = '<div class="score-block"><div class="score upcoming">vs</div>'
+        + '<div class="match-meta">'+m.stage+'</div>'
+        + '<div class="match-meta">'+m.date+'</div></div>';
+    }
+    return '<div class="match-row'+(live?' live':'')+'">'+teamBlock(m.home,'home')+scoreHtml+teamBlock(m.away,'away')+'</div>';
+  }).join('');
+}
+
+function buildDashboard() {
+  var hero = MATCHES.find(function(m){ return m.status==='live'; })
+           || MATCHES.find(function(m){ return m.status==='upcoming'; })
+           || MATCHES[MATCHES.length-1];
+
+  if (hero) {
+    var ht = TEAMS[hero.home] || { flag:'🏳️', name:hero.home };
+    var at = TEAMS[hero.away] || { flag:'🏳️', name:hero.away };
+    var hOwner = teamOwner[hero.home];
+    var aOwner = teamOwner[hero.away];
+    var label = hero.status==='live' ? "⚡ Live Now — "+hero.stage
+      : hero.status==='upcoming' ? "Next Match — "+hero.stage
+      : "Latest Result — "+hero.stage;
+    var scoreDisplay = hero.status==='upcoming'
+      ? '<div class="dash-hero-vs">vs</div>'
+      : '<div style="text-align:center"><div class="dash-hero-score">'+hero.homeScore+' – '+hero.awayScore+'</div>'
+        + (hero.status==='live' ? '<div style="font-size:12px;color:var(--live);margin-top:4px">'+hero.liveMinute+"' <span class='live-badge'>LIVE</span></div>"
+          : '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">Full Time</div>')
+        + '</div>';
+
+    document.getElementById('dash-hero-container').innerHTML =
+      '<div class="dash-hero">'
+      + '<div class="dash-hero-label">'+label+'</div>'
+      + '<div class="dash-hero-teams">'
+      + '<div class="dash-hero-team">'
+      + '<div class="dash-hero-flag">'+ht.flag+'</div>'
+      + '<div class="dash-hero-name" style="'+(hOwner?'color:'+hOwner.colour:'')+'">'+ht.name+'</div>'
+      + (hOwner ? '<div class="dash-hero-owner">'+hOwner.name+'</div>' : '')
+      + '</div>'
+      + scoreDisplay
+      + '<div class="dash-hero-team">'
+      + '<div class="dash-hero-flag">'+at.flag+'</div>'
+      + '<div class="dash-hero-name" style="'+(aOwner?'color:'+aOwner.colour:'')+'">'+at.name+'</div>'
+      + (aOwner ? '<div class="dash-hero-owner">'+aOwner.name+'</div>' : '')
+      + '</div>'
+      + '</div>'
+      + '<div class="dash-hero-meta">'+hero.date+'</div>'
+      + '</div>';
+  }
+
+  var recent = MATCHES.filter(function(m){ return m.status==='completed'; }).slice(-5).reverse();
+  var live = MATCHES.filter(function(m){ return m.status==='live'; });
+  var upcoming = MATCHES.filter(function(m){ return m.status==='upcoming'; }).slice(0,6);
+  renderMatches(live.concat(recent), document.getElementById('recent-matches'));
+  renderMatches(upcoming, document.getElementById('upcoming-matches'));
+}
+
+// Schedule with filters
+var scheduleFilter = 'all';
+
+function buildSchedule() {
+  var filterBar = document.getElementById('schedule-filters');
+  var friendFilters = [{ name:'All', key:'all' }].concat(FRIENDS.map(function(f){ return { name:f.name, key:f.name }; }));
+  filterBar.innerHTML = friendFilters.map(function(f) {
+    return '<button class="filter-btn'+(scheduleFilter===f.key?' active':'')+'" onclick="setScheduleFilter(\''+f.key+'\')">'
+      + (f.key!=='all' ? '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(FRIENDS.find(function(fr){return fr.name===f.key;})||{colour:'transparent'}).colour+';margin-right:5px;vertical-align:middle"></span>' : '')
+      + f.name + '</button>';
+  }).join('');
+
+  var list = document.getElementById('schedule-list');
+  var filtered = MATCHES;
+  if (scheduleFilter !== 'all') {
+    var friend = FRIENDS.find(function(f){ return f.name===scheduleFilter; });
+    if (friend) {
+      filtered = MATCHES.filter(function(m){ return friend.teams.indexOf(m.home)>-1 || friend.teams.indexOf(m.away)>-1; });
+    }
+  }
+
+  // Group by date label
+  var byDate = {};
+  var dateOrder = [];
+  filtered.forEach(function(m) {
+    var d = m.date.split(' · ')[0];
+    if (!byDate[d]) { byDate[d] = []; dateOrder.push(d); }
+    byDate[d].push(m);
+  });
+
+  list.innerHTML = dateOrder.map(function(d) {
+    var card = '<div class="card" style="margin-bottom:12px">'
+      + '<div class="schedule-date-header">'+d+'</div>'
+      + byDate[d].map(function(m) {
+          var live = m.status==='live', done = m.status==='completed';
+          var scoreHtml = '';
+          if (live) {
+            scoreHtml = '<div class="score-block"><div class="score">'+m.homeScore+' – '+m.awayScore+'</div>'
+              + '<div class="match-meta">'+m.liveMinute+"' <span class='live-badge'>LIVE</span></div>"
+              + '<div class="match-meta">'+m.date.split(' · ')[1]+'</div></div>';
+          } else if (done) {
+            scoreHtml = '<div class="score-block"><div class="score">'+m.homeScore+' – '+m.awayScore+'</div>'
+              + '<div class="match-meta">FT · '+m.stage+'</div>'
+              + '<div class="match-meta">'+m.date.split(' · ')[1]+'</div></div>';
+          } else {
+            scoreHtml = '<div class="score-block"><div class="score upcoming">vs</div>'
+              + '<div class="match-meta">'+m.stage+'</div>'
+              + '<div class="match-meta">'+m.date.split(' · ')[1]+'</div></div>';
+          }
+          return '<div class="match-row'+(live?' live':'')+'">'+teamBlock(m.home,'home')+scoreHtml+teamBlock(m.away,'away')+'</div>';
+        }).join('')
+      + '</div>';
+    return card;
+  }).join('');
+
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-dim)">No matches found</div>';
+  }
+}
+
+function setScheduleFilter(key) {
+  scheduleFilter = key;
+  buildSchedule();
+}
+
+function buildGroups() {
+  var grid = document.getElementById('groups-grid');
+  grid.innerHTML = Object.keys(GROUPS).map(function(gk) {
+    var g = GROUPS[gk];
+    var sorted = g.teams.slice().sort(function(a,b){
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      return (b.gf-b.ga) - (a.gf-a.ga);
+    });
+    var rows = sorted.map(function(row, i) {
+      var t = TEAMS[row.code] || { flag:'', name:row.code };
+      var f = teamOwner[row.code];
+      var gd = row.gf - row.ga;
+      var elim = t.status === 'eliminated';
+      var advanced = i < 2 && row.mp > 0 && !elim;
+      var rowClass = elim ? 'eliminated' : '';
+      var pill = '';
+      if (row.mp > 0) {
+        if (elim) pill = '<span class="q-pill elim">OUT</span>';
+        else if (advanced) pill = '<span class="q-pill adv">ADV</span>';
+      }
+      return '<tr class="'+rowClass+'">'
+        + '<td><div class="group-team-cell">'
+        + (f ? '<div class="group-owner-dot" style="background:'+f.colour+'"></div>' : '<div class="group-owner-dot" style="background:transparent"></div>')
+        + '<span class="group-flag">'+t.flag+'</span>'
+        + '<span class="group-team-name">'+t.name+'</span>'
+        + pill
+        + '</div></td>'
+        + '<td>'+row.mp+'</td>'
+        + '<td>'+row.w+'</td>'
+        + '<td>'+row.d+'</td>'
+        + '<td>'+row.l+'</td>'
+        + '<td>'+(gd>0?'+':'')+gd+'</td>'
+        + '<td class="pts-cell">'+row.pts+'</td>'
+        + '</tr>';
+    }).join('');
+
+    return '<div class="card">'
+      + '<div class="card-header"><span>'+g.name+'</span></div>'
+      + '<table class="group-table">'
+      + '<thead><tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>'
+      + '<tbody>'+rows+'</tbody>'
+      + '</table></div>';
+  }).join('');
+}
+
+function buildKnockout() {
+  var container = document.getElementById('knockout-container');
+  container.innerHTML = KNOCKOUT.map(function(stage) {
+    var matches = stage.matches.map(function(m) {
+      var ht = TEAMS[m.home];
+      var at = TEAMS[m.away];
+      var hf = ht ? teamOwner[m.home] : null;
+      var af = at ? teamOwner[m.away] : null;
+      var homeWon = m.winner && m.winner === m.home;
+      var awayWon = m.winner && m.winner === m.away;
+      var hasScore = m.homeScore !== null;
+
+      function bTeam(code, team, friend, won, lost, score) {
+        var cls = won ? 'winner' : (lost ? 'loser' : '');
+        var borderStyle = friend ? 'border-left:3px solid '+friend.colour : '';
+        return '<div class="bracket-team '+cls+'" style="'+borderStyle+'">'
+          + '<div class="bracket-team-left">'
+          + (team ? '<span style="font-size:18px;margin-right:6px">'+team.flag+'</span>' : '<span style="font-size:14px;color:var(--text-dim);margin-right:6px">🏳️</span>')
+          + '<div>'
+          + '<div class="group-team-name" style="'+(friend?'color:'+friend.colour:'color:var(--text-dim)')+'">'+( team ? team.name : code)+'</div>'
+          + (friend ? '<div style="font-size:10px;color:var(--text-dim)">'+friend.name+'</div>' : '')
+          + '</div>'
+          + '</div>'
+          + (hasScore ? '<div class="bracket-team-score">'+score+'</div>' : '<div class="bracket-team-score tbd">—</div>')
+          + '</div>';
+      }
+
+      return '<div class="bracket-match">'
+        + '<div class="bracket-match-header">'+m.label+' · '+m.date+'</div>'
+        + bTeam(m.home, ht, hf, homeWon, awayWon, m.homeScore)
+        + bTeam(m.away, at, af, awayWon, homeWon, m.awayScore)
+        + '</div>';
+    }).join('');
+
+    return '<div class="bracket-stage">'
+      + '<div class="bracket-stage-title">'+stage.stage+'</div>'
+      + '<div class="bracket-grid">'+matches+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function buildSweepstakes() {
+  var grid = document.getElementById('sweep-grid');
+  grid.innerHTML = FRIENDS.map(function(f) {
+    var alive = f.teams.filter(function(t){ return TEAMS[t] && TEAMS[t].status !== 'eliminated'; }).length;
+    var teams = f.teams.map(function(code) {
+      var t = TEAMS[code];
+      if (!t) return '';
+      var elim = t.status === 'eliminated';
+      var champ = t.status === 'champion';
+      var statusLabel = champ ? 'CHAMPION' : (elim ? 'OUT' : 'Active');
+      var statusClass = champ ? 'champ' : (elim ? 'elim' : 'adv');
+      return '<div class="sweep-team-row '+(elim?'eliminated':'active')+'" style="border-left-color:'+f.colour+'">'
+        + '<div class="sweep-team-flag">'+t.flag+'</div>'
+        + '<div class="sweep-team-name">'+t.name+'</div>'
+        + '<div class="sweep-team-status '+statusClass+'">'+statusLabel+'</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="sweep-card">'
+      + '<div class="sweep-card-header" style="border-left:4px solid '+f.colour+';background:linear-gradient(90deg,'+f.colour+'22 0%,transparent 100%)">'
+      + '<div class="sweep-colour" style="background:'+f.colour+'"></div>'
+      + '<div class="sweep-name">'+f.name+'</div>'
+      + '<div class="sweep-score-badge">'+alive+' alive</div>'
+      + '</div>'
+      + '<div class="sweep-teams">'+teams+'</div>'
+      + '</div>';
+  }).join('');
+}
+
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('panel-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (name === 'schedule') buildSchedule();
+}
+
+// Init
+buildDashboard();
+buildGroups();
+buildKnockout();
+buildSweepstakes();
+</script>
+</body>
+</html>
