@@ -497,6 +497,8 @@
   </nav>
 </header>
 
+<div id="api-banner" style="display:none;padding:8px 20px;font-size:11px;font-family:'Oswald',sans-serif;letter-spacing:1px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);transition:all 0.3s"></div>
+
 <main>
   <div id="panel-dashboard" class="panel active">
     <div id="dash-hero-container"></div>
@@ -619,12 +621,167 @@ var TEAMS = {
 };
 
 // ═══════════════════════════════════════════════════
-// ██  GROUP STANDINGS  (update as games are played)██
+// ██  API CONFIG  — add your key from               ██
+// ██  football-data.org and set USE_API = true      ██
+// ═══════════════════════════════════════════════════
+var API_KEY  = 'a03aff82a2884664a24fdb589662157a';   // ← paste your key here
+var USE_API  = true;                  // ← set to true once key is added
+var WC_CODE  = 'WC';
+var API_BASE = 'https://api.football-data.org/v4/competitions/' + WC_CODE + '/';
+
+// Map football-data.org 3-letter codes → your codes where they differ
+var CODE_MAP = {
+  'RSA': 'RSA', 'KOR': 'KOR', 'CZE': 'CZE', 'MEX': 'MEX',
+  'CAN': 'CAN', 'BIH': 'BIH', 'QAT': 'QAT', 'SUI': 'SUI',
+  'BRA': 'BRA', 'MAR': 'MAR', 'HAI': 'HAI', 'SCO': 'SCO',
+  'USA': 'USA', 'PAR': 'PAR', 'AUS': 'AUS', 'TUR': 'TUR',
+  'GER': 'GER', 'CUW': 'CUW', 'CIV': 'CIV', 'ECU': 'ECU',
+  'NED': 'NED', 'JPN': 'JPN', 'SWE': 'SWE', 'TUN': 'TUN',
+  'BEL': 'BEL', 'EGY': 'EGY', 'IRN': 'IRN', 'NZL': 'NZL',
+  'ESP': 'ESP', 'CPV': 'CPV', 'KSA': 'KSA', 'URU': 'URU',
+  'FRA': 'FRA', 'SEN': 'SEN', 'IRQ': 'IRQ', 'NOR': 'NOR',
+  'ARG': 'ARG', 'ALG': 'ALG', 'AUT': 'AUT', 'JOR': 'JOR',
+  'POR': 'POR', 'COD': 'COD', 'UZB': 'UZB', 'COL': 'COL',
+  'ENG': 'ENG', 'CRO': 'CRO', 'GHA': 'GHA', 'PAN': 'PAN',
+  // football-data sometimes uses these alternate codes:
+  'CRC': 'CRC', 'BOL': 'BOL', 'VEN': 'VEN',
+};
+
+function toLocalCode(apiCode) {
+  return CODE_MAP[apiCode] || apiCode;
+}
+
+function formatMatchDate(utcString) {
+  if (!utcString) return '';
+  var d = new Date(utcString);
+  var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var day = days[d.getDay()];
+  var date = d.getDate();
+  var month = months[d.getMonth()];
+  // Format time in AEST (UTC+10)
+  var aest = new Date(d.getTime() + 10 * 60 * 60 * 1000);
+  var h = aest.getUTCHours();
+  var m = aest.getUTCMinutes();
+  var ampm = h >= 12 ? 'AEST' : 'AEST';
+  var hh = h.toString().padStart(2,'0');
+  var mm = m.toString().padStart(2,'0');
+  return day + ' ' + date + ' ' + month + ' · ' + hh + ':' + mm + ' AEST';
+}
+
+function apiMatchStatus(m) {
+  var s = m.status;
+  if (s === 'FINISHED') return 'completed';
+  if (s === 'IN_PLAY' || s === 'PAUSED' || s === 'HALFTIME') return 'live';
+  return 'upcoming';
+}
+
+function mapApiMatches(apiMatches) {
+  return apiMatches.map(function(m) {
+    var status = apiMatchStatus(m);
+    var home = toLocalCode(m.homeTeam && m.homeTeam.tla ? m.homeTeam.tla : 'TBD');
+    var away = toLocalCode(m.awayTeam && m.awayTeam.tla ? m.awayTeam.tla : 'TBD');
+    var homeScore = m.score && m.score.fullTime ? m.score.fullTime.home : null;
+    var awayScore = m.score && m.score.fullTime ? m.score.fullTime.away : null;
+    if (status === 'live') {
+      homeScore = m.score && m.score.halfTime ? m.score.halfTime.home : null;
+      // use in-play score if available
+      if (m.score && m.score.fullTime && m.score.fullTime.home !== null) {
+        homeScore = m.score.fullTime.home;
+        awayScore = m.score.fullTime.away;
+      }
+    }
+    var stage = m.stage || m.group || 'Group Stage';
+    // Clean up stage label
+    stage = stage.replace(/_/g, ' ').replace(/GROUP_/,'Group ');
+    return {
+      home: home,
+      away: away,
+      homeScore: homeScore,
+      awayScore: awayScore,
+      status: status,
+      liveMinute: m.minute ? String(m.minute) : "45",
+      stage: stage,
+      date: formatMatchDate(m.utcDate),
+    };
+  });
+}
+
+function mapApiStandings(apiStandings) {
+  var groups = {};
+  apiStandings.forEach(function(standing) {
+    var gName = standing.group || 'GROUP_A';
+    var letter = gName.replace('GROUP_','');
+    var key = letter;
+    groups[key] = {
+      name: 'Group ' + letter,
+      teams: standing.table.map(function(row) {
+        var code = toLocalCode(row.team.tla);
+        return {
+          code: code,
+          mp: row.playedGames,
+          w: row.won,
+          d: row.draw,
+          l: row.lost,
+          gf: row.goalsFor,
+          ga: row.goalsAgainst,
+          pts: row.points,
+        };
+      })
+    };
+  });
+  return groups;
+}
+
+function mapApiKnockout(apiMatches) {
+  var stageOrder = ['LAST_32','LAST_16','QUARTER_FINALS','SEMI_FINALS','FINAL'];
+  var stageLabels = {
+    'LAST_32': 'Round of 32',
+    'LAST_16': 'Round of 16',
+    'QUARTER_FINALS': 'Quarter-Finals',
+    'SEMI_FINALS': 'Semi-Finals',
+    'FINAL': '🏆 Final',
+  };
+  var byStage = {};
+  apiMatches.forEach(function(m) {
+    var s = m.stage;
+    if (!byStage[s]) byStage[s] = [];
+    byStage[s].push(m);
+  });
+  return stageOrder.filter(function(s){ return byStage[s]; }).map(function(s) {
+    return {
+      stage: stageLabels[s] || s,
+      matches: byStage[s].map(function(m, i) {
+        var home = toLocalCode(m.homeTeam && m.homeTeam.tla ? m.homeTeam.tla : 'TBD');
+        var away = toLocalCode(m.awayTeam && m.awayTeam.tla ? m.awayTeam.tla : 'TBD');
+        var status = apiMatchStatus(m);
+        var homeScore = m.score && m.score.fullTime ? m.score.fullTime.home : null;
+        var awayScore = m.score && m.score.fullTime ? m.score.fullTime.away : null;
+        var winner = null;
+        if (m.score && m.score.winner) {
+          winner = m.score.winner === 'HOME_TEAM' ? home : (m.score.winner === 'AWAY_TEAM' ? away : null);
+        }
+        return {
+          label: (stageLabels[s] || s) + ' · Match ' + (i+1),
+          home: home,
+          away: away,
+          homeScore: homeScore,
+          awayScore: awayScore,
+          winner: winner,
+          date: formatMatchDate(m.utcDate),
+        };
+      })
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// ██  GROUP STANDINGS  (fallback / static seed)    ██
 // ═══════════════════════════════════════════════════
 var GROUPS = {
   A: { name:"Group A", teams:[
-    { code:"MEX", mp:1, w:1, d:0, l:0, gf:2, ga:0, pts:3 },
-    { code:"RSA", mp:1, w:0, d:0, l:1, gf:0, ga:2, pts:0 },
+    { code:"MEX", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
+    { code:"RSA", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
     { code:"KOR", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
     { code:"CZE", mp:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 },
   ]},
@@ -703,7 +860,7 @@ var GROUPS = {
 var MATCHES = [
   // ── GROUP STAGE ──
   // Thursday 12 June (AEST) — matches kick off Wed 11 Jun US time
-  { home:"MEX", away:"RSA",  homeScore:2, awayScore:0, status:"completed", stage:"Group A", date:"Thu 12 Jun · 05:00 AEST" },
+  { home:"MEX", away:"RSA",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group A", date:"Thu 12 Jun · 05:00 AEST" },
   { home:"KOR", away:"CZE",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group A", date:"Thu 12 Jun · 12:00 AEST" },
   // Friday 13 June (AEST)
   { home:"CAN", away:"BIH",  homeScore:null, awayScore:null, status:"upcoming", stage:"Group B", date:"Fri 13 Jun · 05:00 AEST" },
@@ -1028,7 +1185,7 @@ function buildGroups() {
         + '<td><div class="group-team-cell">'
         + (f ? '<div class="group-owner-dot" style="background:'+f.colour+'"></div>' : '<div class="group-owner-dot" style="background:transparent"></div>')
         + '<span class="group-flag">'+t.flag+'</span>'
-        + '<span class="group-team-name">'+t.name+(f ? ' <span style="font-size:10px;font-weight:400;color:'+f.colour+';opacity:0.85">('+f.name+')</span>' : '')+'</span>'
+        + '<span class="group-team-name">'+t.name+'</span>'
         + pill
         + '</div></td>'
         + '<td>'+row.mp+'</td>'
@@ -1127,11 +1284,120 @@ function showPanel(name, el) {
   if (name === 'schedule') buildSchedule();
 }
 
-// Init
-buildDashboard();
-buildGroups();
-buildKnockout();
-buildSweepstakes();
+// ═══════════════════════════════════════════════════
+// ██  LOADER — fetches live data or falls back     ██
+// ═══════════════════════════════════════════════════
+
+function showBanner(msg, colour) {
+  var b = document.getElementById('api-banner');
+  if (!b) return;
+  b.textContent = msg;
+  b.style.background = colour || 'rgba(200,168,75,0.15)';
+  b.style.display = 'block';
+}
+
+function hideBanner() {
+  var b = document.getElementById('api-banner');
+  if (b) b.style.display = 'none';
+}
+
+function renderAll() {
+  // Rebuild teamOwner in case TEAMS was updated
+  teamOwner = {};
+  FRIENDS.forEach(function(f) {
+    f.teams.forEach(function(t) { teamOwner[t] = f; });
+  });
+  buildDashboard();
+  buildGroups();
+  buildKnockout();
+  buildSweepstakes();
+  if (scheduleFilter !== undefined) buildSchedule();
+}
+
+var refreshInterval = null;
+
+function checkRateLimit(res) {
+  var remaining = res.headers.get('X-Requests-Available-Minute');
+  var reset = res.headers.get('X-RequestCounter-Reset');
+  if (remaining !== null && parseInt(remaining) < 3) {
+    var wait = reset ? parseInt(reset) * 1000 : 60000;
+    console.warn('Rate limit low — pausing refresh for', wait, 'ms');
+    if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
+    setTimeout(function() {
+      refreshInterval = setInterval(function() {
+        fetchFromApi().catch(function(e) { console.error('Refresh failed:', e); });
+      }, 60000);
+    }, wait);
+  }
+}
+
+async function fetchFromApi() {
+  var headers = { 'X-Auth-Token': API_KEY };
+  var matchesRes = await fetch(API_BASE + 'matches', { headers: headers });
+  checkRateLimit(matchesRes);
+  var standingsRes = await fetch(API_BASE + 'standings', { headers: headers });
+  checkRateLimit(standingsRes);
+  if (!matchesRes.ok || !standingsRes.ok) throw new Error('API error ' + matchesRes.status);
+  var matchesData = await matchesRes.json();
+  var standingsData = await standingsRes.json();
+
+  var allMatches = matchesData.matches || [];
+
+  // Split group stage vs knockout
+  var groupMatches = allMatches.filter(function(m) { return m.stage && m.stage.startsWith('GROUP'); });
+  var knockoutMatches = allMatches.filter(function(m) { return m.stage && !m.stage.startsWith('GROUP'); });
+
+  MATCHES = mapApiMatches(groupMatches.concat(knockoutMatches));
+
+  if (standingsData.standings && standingsData.standings.length) {
+    GROUPS = mapApiStandings(standingsData.standings);
+  }
+
+  if (knockoutMatches.length) {
+    KNOCKOUT = mapApiKnockout(knockoutMatches);
+  }
+
+  // Update TEAMS statuses from standings (eliminated = dropped out of top 3 after all group games played)
+  Object.keys(GROUPS).forEach(function(gk) {
+    var g = GROUPS[gk];
+    var allPlayed = g.teams.every(function(t) { return t.mp === 3; });
+    if (allPlayed) {
+      g.teams.forEach(function(t, i) {
+        if (TEAMS[t.code]) {
+          TEAMS[t.code].status = i < 2 ? 'active' : 'eliminated';
+        }
+      });
+    }
+  });
+
+  renderAll();
+  hideBanner();
+  showBanner('✓ Live data loaded · auto-refreshes every 60s', 'rgba(46,204,113,0.15)');
+  setTimeout(hideBanner, 3000);
+}
+
+function init() {
+  // Always render with static data first so page isn't blank
+  renderAll();
+
+  if (!USE_API || API_KEY === 'YOUR_API_KEY_HERE') {
+    showBanner('📋 Showing static data — add your football-data.org API key to enable live updates', 'rgba(200,168,75,0.12)');
+    return;
+  }
+
+  showBanner('⏳ Loading live data…', 'rgba(200,168,75,0.12)');
+  fetchFromApi().catch(function(err) {
+    console.error('API fetch failed:', err);
+    showBanner('⚠️ Could not load live data — showing last known scores', 'rgba(230,57,70,0.15)');
+  });
+
+  // Auto-refresh every 60 seconds
+  refreshInterval = setInterval(function() {
+    fetchFromApi().catch(function(err) { console.error('Refresh failed:', err); });
+  }, 60000);
+}
+
+init();
 </script>
 </body>
 </html>
