@@ -700,7 +700,7 @@ function mapApiMatches(apiMatches) {
       homeScore: homeScore,
       awayScore: awayScore,
       status: status,
-      liveMinute: m.minute ? String(m.minute) : "45",
+      liveMinute: m.minute ? (m.injuryTime ? (m.minute + '+' + m.injuryTime) : String(m.minute)) : "0",
       stage: stage,
       date: formatMatchDate(m.utcDate),
     };
@@ -1331,6 +1331,23 @@ function checkRateLimit(res) {
   }
 }
 
+async function fetchLiveMinutes(matches, headers) {
+  var liveMatches = matches.filter(function(m) {
+    return m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'HALFTIME';
+  });
+  await Promise.all(liveMatches.map(async function(m) {
+    try {
+      var res = await fetch(
+        'https://curly-thunder-54e8.tumoanapoata.workers.dev/v4/matches/' + m.id,
+        { headers: headers }
+      );
+      var data = await res.json();
+      m.minute = data.minute || m.minute;
+      m.injuryTime = data.injuryTime || null;
+    } catch(e) { /* silently fail, keep existing minute */ }
+  }));
+}
+
 async function fetchFromApi() {
   var headers = { 'X-Auth-Token': API_KEY };
   var matchesRes = await fetch(API_BASE + 'matches', { headers: headers });
@@ -1342,6 +1359,7 @@ async function fetchFromApi() {
   var standingsData = await standingsRes.json();
 
   var allMatches = matchesData.matches || [];
+  await fetchLiveMinutes(allMatches, headers);
 
   // Split group stage vs knockout
   var groupMatches = allMatches.filter(function(m) { return m.stage && m.stage.startsWith('GROUP'); });
