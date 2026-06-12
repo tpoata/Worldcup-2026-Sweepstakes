@@ -1185,8 +1185,10 @@ function buildGroups() {
         + '<td><div class="group-team-cell">'
         + (f ? '<div class="group-owner-dot" style="background:'+f.colour+'"></div>' : '<div class="group-owner-dot" style="background:transparent"></div>')
         + '<span class="group-flag">'+t.flag+'</span>'
-        + '<span class="group-team-name">'+t.name+'</span>'
-        + pill
+        + '<div style="display:flex;flex-direction:column;line-height:1.2">'
+        + '<span class="group-team-name">'+t.name+(pill ? ' '+pill : '')+'</span>'
+        + (f ? '<span style="font-size:10px;font-weight:400;color:'+f.colour+';opacity:0.85">'+f.name+'</span>' : '')
+        + '</div>'
         + '</div></td>'
         + '<td>'+row.mp+'</td>'
         + '<td>'+row.w+'</td>'
