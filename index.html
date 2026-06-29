@@ -1175,10 +1175,10 @@ function buildGroups() {
       var f = teamOwner[row.code];
       var gd = row.gf - row.ga;
       var elim = t.status === 'eliminated';
-      var advanced = i < 2 && row.mp > 0 && !elim;
+      var advanced = t.status === 'active' && row.mp === 3;
       var rowClass = elim ? 'eliminated' : '';
       var pill = '';
-      if (row.mp > 0) {
+      if (row.mp === 3) {
         if (elim) pill = '<span class="q-pill elim">OUT</span>';
         else if (advanced) pill = '<span class="q-pill adv">ADV</span>';
       }
@@ -1378,16 +1378,55 @@ async function fetchFromApi() {
     KNOCKOUT = mapApiKnockout(knockoutMatches);
   }
 
-  // Update TEAMS statuses from standings (eliminated = dropped out of top 3 after all group games played)
+  // Update TEAMS statuses using full third-place qualification logic
+  // Confirmed 8 best third-placed teams that qualified for Round of 32
+  var THIRD_PLACE_QUALIFIED = {
+    'COD': true,  // DR Congo  - 4pts +1 GD
+    'SWE': true,  // Sweden    - 4pts  0 GD
+    'ECU': true,  // Ecuador   - 4pts  0 GD
+    'GHA': true,  // Ghana     - 4pts  0 GD
+    'BIH': true,  // Bosnia    - 4pts -1 GD
+    'ALG': true,  // Algeria   - 4pts -2 GD
+    'PAR': true,  // Paraguay  - 4pts -2 GD
+    'SEN': true,  // Senegal   - 3pts +2 GD
+  };
+
+  var allGroupsComplete = Object.keys(GROUPS).every(function(gk) {
+    return GROUPS[gk].teams.every(function(t) { return t.mp === 3; });
+  });
+
   Object.keys(GROUPS).forEach(function(gk) {
     var g = GROUPS[gk];
     var allPlayed = g.teams.every(function(t) { return t.mp === 3; });
     if (allPlayed) {
       g.teams.forEach(function(t, i) {
-        if (TEAMS[t.code]) {
-          TEAMS[t.code].status = i < 2 ? 'active' : 'eliminated';
+        if (!TEAMS[t.code]) return;
+        if (i < 2) {
+          // Top 2 always qualify
+          TEAMS[t.code].status = 'active';
+        } else if (i === 2) {
+          // 3rd place - qualified only if in confirmed top 8
+          TEAMS[t.code].status = allGroupsComplete
+            ? (THIRD_PLACE_QUALIFIED[t.code] ? 'active' : 'eliminated')
+            : 'active'; // keep active until all groups done
+        } else {
+          // 4th place - always eliminated once group is done
+          TEAMS[t.code].status = 'eliminated';
         }
       });
+    }
+  });
+
+  // Mark knockout losers as eliminated
+  knockoutMatches.forEach(function(m) {
+    if (m.status !== 'FINISHED') return;
+    var winner = m.score && m.score.winner;
+    if (!winner || winner === 'DRAW') return;
+    var homeCode = toLocalCode(m.homeTeam && m.homeTeam.tla ? m.homeTeam.tla : '');
+    var awayCode = toLocalCode(m.awayTeam && m.awayTeam.tla ? m.awayTeam.tla : '');
+    var loser = winner === 'HOME_TEAM' ? awayCode : homeCode;
+    if (loser && TEAMS[loser]) {
+      TEAMS[loser].status = 'eliminated';
     }
   });
 
